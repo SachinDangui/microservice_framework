@@ -79,6 +79,12 @@
                 <groupId>uk.gov.justice.services</groupId>
                 <artifactId>file-service-persistence</artifactId>
                 <version>${file.service.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>uk.gov.justice.utils</groupId>
+                        <artifactId>utilities-file</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>uk.gov.justice.utils</groupId>

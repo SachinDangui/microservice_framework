@@ -28,6 +28,7 @@ public class JsonEnvelopeMetadataMatcher extends TypeSafeDiagnosingMatcher<Metad
     private Optional<String> name = Optional.empty();
     private Optional<UUID[]> causationIds = Optional.empty();
     private Optional<String> userId = Optional.empty();
+    private Optional<Integer> levelOfAssurance = Optional.empty();
     private Optional<String> sessionId = Optional.empty();
     private Optional<UUID> streamId = Optional.empty();
     private Optional<Long> version = Optional.empty();
@@ -61,6 +62,7 @@ public class JsonEnvelopeMetadataMatcher extends TypeSafeDiagnosingMatcher<Metad
         name.ifPresent(value -> description.appendText(format("name = %s, ", value)));
         causationIds.ifPresent(value -> format("causationIds = %s", Arrays.toString(value)));
         userId.ifPresent(value -> description.appendText(format("userId = %s, ", value)));
+        levelOfAssurance.ifPresent(value -> description.appendText(format("authLevel = %s, ", value)));
         sessionId.ifPresent(value -> description.appendText(format("sessionId = %s, ", value)));
         streamId.ifPresent(value -> description.appendText(format("streamId = %s, ", value)));
         version.ifPresent(value -> description.appendText(format("version = %s ", value)));
@@ -87,6 +89,12 @@ public class JsonEnvelopeMetadataMatcher extends TypeSafeDiagnosingMatcher<Metad
         this.userId = Optional.of(userId);
         return this;
     }
+
+    public JsonEnvelopeMetadataMatcher withLevelOfAssurance(final Integer authLevel) {
+        this.levelOfAssurance = Optional.of(authLevel);
+        return this;
+    }
+
 
     public JsonEnvelopeMetadataMatcher withSessionId(final String sessionId) {
         this.sessionId = Optional.of(sessionId);
@@ -123,6 +131,7 @@ public class JsonEnvelopeMetadataMatcher extends TypeSafeDiagnosingMatcher<Metad
         id = Optional.of(metadata.id());
         name = Optional.of(metadata.name());
         userId = metadata.userId();
+        levelOfAssurance = metadata.levelOfAssurance();
         sessionId = metadata.sessionId();
         streamId = metadata.streamId();
         version = metadata.version();
@@ -144,6 +153,7 @@ public class JsonEnvelopeMetadataMatcher extends TypeSafeDiagnosingMatcher<Metad
         id = Optional.empty();
         name = Optional.empty();
         userId = metadata.userId();
+        levelOfAssurance = metadata.levelOfAssurance();
         sessionId = metadata.sessionId();
         streamId = metadata.streamId();
         version = metadata.version();
@@ -175,6 +185,11 @@ public class JsonEnvelopeMetadataMatcher extends TypeSafeDiagnosingMatcher<Metad
 
         if (userIdIsSetAndDoesNotMatchWith(metadata)) {
             description.appendText("Metadata with userId = " + metadata.userId().orElse(NOT_SET));
+            return false;
+        }
+
+        if (levelOfAssuranceIsSetAndDoesNotMatchWith(metadata)) {
+            description.appendText("Metadata with levelOfAssurance = " + metadata.levelOfAssurance().orElse(null));
             return false;
         }
 
@@ -221,6 +236,10 @@ public class JsonEnvelopeMetadataMatcher extends TypeSafeDiagnosingMatcher<Metad
 
     private boolean userIdIsSetAndDoesNotMatchWith(final Metadata metadata) {
         return userId.isPresent() && !userId.equals(metadata.userId());
+    }
+
+    private boolean levelOfAssuranceIsSetAndDoesNotMatchWith(final Metadata metadata) {
+        return levelOfAssurance.isPresent() && !levelOfAssurance.equals(metadata.levelOfAssurance());
     }
 
     private boolean sessionIdIsSetAndDoesNotMatchWith(final Metadata metadata) {

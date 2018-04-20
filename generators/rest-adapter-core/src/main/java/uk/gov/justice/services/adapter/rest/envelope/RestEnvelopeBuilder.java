@@ -1,5 +1,7 @@
 package uk.gov.justice.services.adapter.rest.envelope;
 
+
+import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
@@ -7,6 +9,7 @@ import static uk.gov.justice.services.common.http.HeaderConstants.CAUSATION;
 import static uk.gov.justice.services.common.http.HeaderConstants.CLIENT_CORRELATION_ID;
 import static uk.gov.justice.services.common.http.HeaderConstants.SESSION_ID;
 import static uk.gov.justice.services.common.http.HeaderConstants.USER_ID;
+import static uk.gov.justice.services.common.http.HeaderConstants.AUTH_LEVEL;
 import static uk.gov.justice.services.messaging.JsonEnvelope.METADATA;
 import static uk.gov.justice.services.messaging.JsonEnvelope.envelopeFrom;
 import static uk.gov.justice.services.messaging.JsonEnvelope.metadataFrom;
@@ -143,6 +146,7 @@ public class RestEnvelopeBuilder {
         final Optional<String> correlationId;
         final Optional<String> sessionId;
         final Optional<String> userId;
+        final Optional<Integer> levelOfAssurance;
         final List<UUID> causation;
 
         if (metadata.isPresent()) {
@@ -152,10 +156,12 @@ public class RestEnvelopeBuilder {
             sessionId = metadataValue.sessionId();
             userId = metadataValue.userId();
             causation = metadataValue.causation();
+            levelOfAssurance = metadataValue.levelOfAssurance();
         } else {
             correlationId = Optional.empty();
             sessionId = Optional.empty();
             userId = Optional.empty();
+            levelOfAssurance = Optional.empty();
             causation = emptyList();
         }
 
@@ -176,6 +182,13 @@ public class RestEnvelopeBuilder {
                     metadataBuilder::withUserId,
                     "User Id");
 
+            final Integer authLevel = httpHeaders.getHeaderString(AUTH_LEVEL) != null ? parseInt(httpHeaders.getHeaderString(AUTH_LEVEL)) : null;
+            setMetaDataIfNotSet(
+                    levelOfAssurance,
+                    authLevel,
+                    metadataBuilder::withLevelOfAssurance,
+                    "level of Assurance");
+
             setMetaDataIfNotSet(
                     sessionId,
                     httpHeaders.getHeaderString(SESSION_ID),
@@ -191,9 +204,9 @@ public class RestEnvelopeBuilder {
         return metadataBuilder;
     }
 
-    private void setMetaDataIfNotSet(final Optional<String> metadataValue,
-                                     final String headerValue,
-                                     final Consumer<String> setMetadata,
+    private <T> void setMetaDataIfNotSet(final Optional<T> metadataValue,
+                                     final T headerValue,
+                                     final Consumer<T> setMetadata,
                                      final String exceptionInfo) {
 
         final boolean valueIsPresentAndNotEqualInHeaderAndPayload = metadataValue.isPresent()

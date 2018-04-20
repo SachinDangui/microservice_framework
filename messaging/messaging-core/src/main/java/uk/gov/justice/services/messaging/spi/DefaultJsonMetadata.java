@@ -1,5 +1,6 @@
 package uk.gov.justice.services.messaging.spi;
 
+import static uk.gov.justice.services.messaging.JsonObjects.getJsonNumber;
 import static uk.gov.justice.services.messaging.JsonObjects.getJsonString;
 import static uk.gov.justice.services.messaging.JsonObjects.getLong;
 import static uk.gov.justice.services.messaging.JsonObjects.getString;
@@ -103,6 +104,11 @@ public class DefaultJsonMetadata extends JsonMetadata {
     }
 
     @Override
+    public Optional<Integer> levelOfAssurance() {
+        return getJsonNumber(metadata, LEVEL_OF_ASSURANCE_PATH).map(x -> x.intValue());
+    }
+
+    @Override
     public Optional<String> userId() {
         return getString(metadata, USER_ID_PATH);
     }
@@ -201,6 +207,12 @@ public class DefaultJsonMetadata extends JsonMetadata {
         @Override
         public MetadataBuilder withUserId(final String userId) {
             json.add(userId, USER_ID_PATH);
+            return this;
+        }
+
+        @Override
+        public MetadataBuilder withLevelOfAssurance(final Integer levelOfAssurance) {
+            json.add(levelOfAssurance, LEVEL_OF_ASSURANCE_PATH);
             return this;
         }
 

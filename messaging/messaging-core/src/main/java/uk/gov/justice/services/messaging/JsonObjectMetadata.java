@@ -2,6 +2,7 @@ package uk.gov.justice.services.messaging;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.UUID.randomUUID;
+import static uk.gov.justice.services.messaging.JsonObjects.getJsonNumber;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -160,6 +161,11 @@ public class JsonObjectMetadata implements Metadata {
     @Deprecated
     public static Builder metadataFrom(final Metadata metadata) {
         return new Builder(metadata);
+    }
+
+    @Override
+    public Optional<Integer> levelOfAssurance() {
+        return metadata.levelOfAssurance();
     }
 
 

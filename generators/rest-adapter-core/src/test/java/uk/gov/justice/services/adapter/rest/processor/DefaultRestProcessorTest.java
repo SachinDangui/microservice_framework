@@ -57,7 +57,7 @@ public class DefaultRestProcessorTest {
     private static final List<Parameter> NOT_USED_PATH_PARAMS = emptyList();
 
     private static final Optional<JsonObject> NOT_USED_PAYLOAD = Optional.of(createObjectBuilder().build());
-    private static final ResteasyHttpHeaders NOT_USED_HEADERS = headersWithUserId("123");
+    private static final ResteasyHttpHeaders NOT_USED_HEADERS = headersWithUserIdAndAuthLevel("123", 1);
 
     @Mock
     private Function<InterceptorContext, Optional<JsonEnvelope>> interceptorChain;
@@ -97,6 +97,7 @@ public class DefaultRestProcessorTest {
     public void shouldPassEnvelopeWithPayloadToInterceptorChain() throws Exception {
 
         final String userId = "userId1234";
+        final Integer authLevel = 1;
         final String action = "anAction123";
         final String payloadIdValue = "payloadIdValue1";
         final List<Parameter> pathParams = singletonList(DefaultParameter.valueOf("paramName", "someParamValue", ParameterType.STRING));
@@ -105,7 +106,7 @@ public class DefaultRestProcessorTest {
 
         when(responseStrategyCache.responseStrategyOf(anyString())).thenReturn(responseStrategy);
 
-        restProcessor.process(NOT_USED_RESPONSE_STRATEGY_NAME, interceptorChain, action, Optional.of(payload), headersWithUserId(userId), pathParams);
+        restProcessor.process(NOT_USED_RESPONSE_STRATEGY_NAME, interceptorChain, action, Optional.of(payload), headersWithUserIdAndAuthLevel(userId, authLevel), pathParams);
 
         final ArgumentCaptor<InterceptorContext> interceptorContextCaptor = forClass(InterceptorContext.class);
         verify(interceptorChain).apply(interceptorContextCaptor.capture());
@@ -115,7 +116,8 @@ public class DefaultRestProcessorTest {
         assertThat(envelope, jsonEnvelope()
                 .withMetadataOf(metadata()
                         .withName(action)
-                        .withUserId(userId))
+                        .withUserId(userId)
+                        .withLevelOfAssurance(authLevel))
                 .withPayloadOf(payloadIsJson(allOf(
                         withJsonPath("$.payloadId", equalTo(payloadIdValue)),
                         withJsonPath("$.paramName", equalTo("someParamValue"))
@@ -126,11 +128,12 @@ public class DefaultRestProcessorTest {
     public void shouldPassEnvelopeWithEmptyPayloadToInterceptorChain() throws Exception {
         final String action = "actionABC";
         final String userId = "usrABC";
+        final Integer authLevel = 1;
         final List<Parameter> pathParams = singletonList(DefaultParameter.valueOf("name", "value123", ParameterType.STRING));
 
         when(responseStrategyCache.responseStrategyOf(anyString())).thenReturn(responseStrategy);
 
-        restProcessor.process(NOT_USED_RESPONSE_STRATEGY_NAME, interceptorChain, action, headersWithUserId(userId), pathParams);
+        restProcessor.process(NOT_USED_RESPONSE_STRATEGY_NAME, interceptorChain, action, headersWithUserIdAndAuthLevel(userId, authLevel), pathParams);
 
         final ArgumentCaptor<InterceptorContext> interceptorContextCaptor = forClass(InterceptorContext.class);
         verify(interceptorChain).apply(interceptorContextCaptor.capture());
@@ -141,7 +144,8 @@ public class DefaultRestProcessorTest {
         assertThat(envelope, jsonEnvelope()
                 .withMetadataOf(metadata()
                         .withName(action)
-                        .withUserId(userId))
+                        .withUserId(userId)
+                        .withLevelOfAssurance(authLevel))
                 .withPayloadOf(payloadIsJson(
                         withJsonPath("$.name", equalTo("value123"))
                 )));
@@ -215,10 +219,11 @@ public class DefaultRestProcessorTest {
         assertThat(result, equalTo(response));
     }
 
-    private static ResteasyHttpHeaders headersWithUserId(final String userId) {
+    private static ResteasyHttpHeaders headersWithUserIdAndAuthLevel(final String userId, final Integer authLevel) {
         final ResteasyHttpHeaders headers;
         final MultivaluedMapImpl<String, String> requestHeaders = new MultivaluedMapImpl<>();
         requestHeaders.add(HeaderConstants.USER_ID, userId);
+        requestHeaders.add(HeaderConstants.AUTH_LEVEL, authLevel.toString());
         headers = new ResteasyHttpHeaders(requestHeaders);
         return headers;
     }
